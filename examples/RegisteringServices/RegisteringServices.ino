@@ -20,33 +20,39 @@
 
 //  Illustrates how to register a Bonjour service.
 
-#include <SPI.h>
 #include <Ethernet3.h>
+#include <EthernetUdp3.h>
+
 #include <EthernetBonjour3.h>
 
 // you can find this written on the board of some Arduino Ethernets or shields
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; 
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-// NOTE: Alternatively, you can assign a fixed IP to configure your
-//       Ethernet shield.
-//       byte ip[] = { 192, 168, 0, 154 };
-
-EthernetServer server(80);
+MDNS_NAMESPACE::EthernetBonjour3Class<EthernetUDP> EthernetBonjour("Arduino");
 
 void setup()
 {
-// NOTE: Alternatively, you can assign a fixed IP to configure your
-//       Ethernet shield.
-//       Ethernet.begin(mac, ip);   
-  Ethernet.begin(mac); 
-  
-  server.begin();
+  Serial.begin(115200);
+  while (!Serial) {}
+  Serial.println("Booting");
+
+  Ethernet.setRstPin(26);
+  Ethernet.setCsPin(5);
+  Ethernet.init(4); // maxSockNum = 4 Socket 0...3 -> RX/TX Buffer 4k
+  Serial.println("Resetting Wiz W5500 Ethernet Board...  ");
+  Ethernet.hardreset();
+
+  Ethernet.begin(mac);
+  Serial.print("Ethernet with ");
+  Serial.println(Ethernet.localIP());
 
   // Initialize the Bonjour/MDNS library. You can now reach or ping this
   // Arduino via the host name "arduino.local", provided that your operating
   // system is Bonjour-enabled (such as MacOS X).
   // Always call this before any other method!
-  EthernetBonjour.begin("arduino");
+  EthernetBonjour.begin(Ethernet.localIP());
+
+  Serial.println("EthernetBonjour starting");
 
   // Now let's register the service we're offering (a web service) via Bonjour!
   // To do so, we call the addServiceRecord() method. The first argument is the
@@ -63,53 +69,12 @@ void setup()
   // browser. As an example, if you are using Apple's Safari, you will now see
   // the service under Bookmarks -> Bonjour (Provided that you have enabled
   // Bonjour in the "Bookmarks" preferences in Safari).
-  EthernetBonjour.addServiceRecord("Arduino Bonjour Webserver Example._http",
-                                   80,
-                                   MDNSServiceTCP);
+  EthernetBonjour.addServiceRecord("Arduino test._apple-midi",
+                                   5004,
+                                   MDNS_NAMESPACE::MDNSServiceUDP);
 }
 
 void loop()
-{ 
-  // This actually runs the Bonjour module. YOU HAVE TO CALL THIS PERIODICALLY,
-  // OR NOTHING WILL WORK! Preferably, call it once per loop().
+{
   EthernetBonjour.run();
-
-  // The code below is just taken from the "WebServer" example in the Ethernet
-  // library. The only difference here is that this web server gets announced
-  // over Bonjour, but this happens in setup(). This just displays something
-  // in the browser when you connect.
-  EthernetClient client = server.available();
-  if (client) {
-    // an http request ends with a blank line
-    boolean current_line_is_blank = true;
-    while (client.connected()) {
-      if (client.available()) {
-        char c = client.read();
-        // if we've gotten to the end of the line (received a newline
-        // character) and the line is blank, the http request has ended,
-        // so we can send a reply
-        if (c == '\n' && current_line_is_blank) {
-          // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println();
-          
-          client.println("Hello from a Bonjour-enabled web-server running ");
-          client.println("on your Arduino board!");
-
-          break;
-        }
-        if (c == '\n') {
-          // we're starting a new line
-          current_line_is_blank = true;
-        } else if (c != '\r') {
-          // we've gotten a character on the current line
-          current_line_is_blank = false;
-        }
-      }
-    }
-    // give the web browser time to receive the data
-    delay(1);
-    client.stop();
-  }
 }

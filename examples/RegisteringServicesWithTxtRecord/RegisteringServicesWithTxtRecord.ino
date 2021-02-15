@@ -20,7 +20,6 @@
 
 //  Illustrates how to register a service with a TXT record.
 
-#include <SPI.h>
 #include <Ethernet3.h>
 #include <EthernetBonjour3.h>
 
@@ -44,7 +43,7 @@ void setup()
   // Arduino via the host name "arduino.local", provided that your operating
   // system is Bonjour-enabled (such as MacOS X).
   // Always call this before any other method!
-  EthernetBonjour.begin("arduino");
+  EthernetBonjour.begin();
 
   // Now let's register the service we're offering (a web service) via Bonjour!
   // To do so, we call the addServiceRecord() method. The first argument is the

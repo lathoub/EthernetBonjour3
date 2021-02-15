@@ -46,7 +46,7 @@ void setup()
   // Arduino via the host name "arduino.local", provided that your operating
   // system is Bonjour-enabled (such as MacOS X).
   // Always call this before any other method!
-  EthernetBonjour.begin("arduino");
+  EthernetBonjour.begin();
 
   // We specify the function that the Bonjour library will call when it
   // resolves a host name. In this case, we will call the function named

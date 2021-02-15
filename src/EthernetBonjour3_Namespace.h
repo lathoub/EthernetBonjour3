@@ -1,0 +1,13 @@
+#pragma once
+
+#define MDNS_NAMESPACE mDNS
+#define BEGIN_MDNS_NAMESPACE \
+    namespace MDNS_NAMESPACE \
+    {
+#define END_MDNS_NAMESPACE }
+
+#define USING_NAMESPACE_MDNS using namespace MDNS_NAMESPACE;
+
+BEGIN_MDNS_NAMESPACE
+
+END_MDNS_NAMESPACE

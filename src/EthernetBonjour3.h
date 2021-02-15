@@ -18,14 +18,22 @@
 //  <http://www.gnu.org/licenses/>.
 //
 
-#if !defined(__ETHERNET_BONJOUR_H__)
-#define __ETHERNET_BONJOUR_H__ 1
+#pragma once
 
-extern "C" {
-   #include <inttypes.h>
-}
-
+#if ARDUINO
+#include <Arduino.h>
+#else
+#include <inttypes.h>
 typedef uint8_t byte;
+#endif
+
+#include <IPAddress.h>
+
+#include "EthernetBonjour3_Namespace.h"
+
+#include "utility/endian.h"
+
+BEGIN_MDNS_NAMESPACE
 
 typedef enum _MDNSState_t {
    MDNSStateIdle,
@@ -71,11 +79,14 @@ typedef void (*BonjourServiceFoundCallback)(const char*, MDNSServiceProtocol_t, 
 
 #define  NumMDNSServiceRecords   (8)
 
-//class EthernetBonjourClass
-class EthernetBonjourClass :
-		public EthernetUDP
+template <class UdpClass>
+class EthernetBonjour3Class
 {
 private:
+ 	UdpClass _socket;
+
+   IPAddress _localIP;
+
    MDNSDataInternal_t    _mdnsData;
    MDNSState_t           _state;
    uint8_t*             _bonjourName;
@@ -115,12 +126,12 @@ private:
    const uint8_t* _postfixForProtocol(MDNSServiceProtocol_t proto);
    
    void _finishedResolvingName(char* name, const byte ipAddr[4]);
+
 public:
-   EthernetBonjourClass();
-   ~EthernetBonjourClass();
+   EthernetBonjour3Class(const char* bonjourName);
+   virtual ~EthernetBonjour3Class() {};
    
-   int begin();
-   int begin(const char* bonjourName);
+   int begin(IPAddress localIP);
    void run();
    
    int setBonjourName(const char* bonjourName);
@@ -146,6 +157,12 @@ public:
    int isDiscoveringService();
 };
 
-extern EthernetBonjourClass EthernetBonjour;
+END_MDNS_NAMESPACE
 
-#endif // __ETHERNET_BONJOUR_H__
+#include "EthernetBonjour3.hpp"
+
+#define MDNS_CREATE_INSTANCE(Type, Name, BonjourName) \
+    EthernetBonjour3Class<Type> Name(Ethernet.localIP(), BonjourName);
+
+#define MDNS_CREATE_DEFAULT_INSTANCE() \
+MDNS_CREATE_INSTANCE(EthernetUDP, EthernetBonjour, MDNS_DEFAULT_NAME);
