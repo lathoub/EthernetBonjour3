@@ -25,6 +25,9 @@
 
 #include <EthernetBonjour3.h>
 
+#define RESET_PIN  26
+#define CS_PIN     5
+
 // you can find this written on the board of some Arduino Ethernets or shields
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
@@ -36,8 +39,8 @@ void setup()
   while (!Serial) {}
   Serial.println("Booting");
 
-  Ethernet.setRstPin(26);
-  Ethernet.setCsPin(5);
+  Ethernet.setRstPin(RESET_PIN);
+  Ethernet.setCsPin(CS_PIN);
   Ethernet.init(4); // maxSockNum = 4 Socket 0...3 -> RX/TX Buffer 4k
   Serial.println("Resetting Wiz W5500 Ethernet Board...  ");
   Ethernet.hardreset();
@@ -69,7 +72,7 @@ void setup()
   // browser. As an example, if you are using Apple's Safari, you will now see
   // the service under Bookmarks -> Bonjour (Provided that you have enabled
   // Bonjour in the "Bookmarks" preferences in Safari).
-  EthernetBonjour.addServiceRecord("Arduino test._apple-midi",
+  EthernetBonjour.addServiceRecord("Arduino._apple-midi",
                                    5004,
                                    MDNS_NAMESPACE::MDNSServiceUDP);
 }
