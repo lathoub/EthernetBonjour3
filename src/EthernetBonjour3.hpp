@@ -1181,7 +1181,7 @@ void EthernetBonjour3Class<UdpClass>::run()
 	}
 
 	// now, should we re-announce our services again?
-	unsigned long announceTimeOut = 30;//(((uint32_t)MDNS_RESPONSE_TTL / 2) + ((uint32_t)MDNS_RESPONSE_TTL / 4));
+	unsigned long announceTimeOut = MDNS_RESPONSE_TTL / 4;
 	if ((now - this->_lastAnnounceMillis) > 1000 * announceTimeOut)
 	{
 		for (i = 0; i < NumMDNSServiceRecords; i++)
