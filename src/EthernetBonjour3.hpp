@@ -35,7 +35,8 @@ BEGIN_MDNS_NAMESPACE
 #define MDNS_SERVER_PORT (5353)
 #define MDNS_NQUERY_RESEND_TIME (1000)	// 1 second, name query resend timeout
 #define MDNS_SQUERY_RESEND_TIME (10000) // 10 seconds, service query resend timeout
-#define MDNS_RESPONSE_TTL (120)			// two minutes (in seconds)
+#define MDNS_RESPONSE_TTL (2*60)		// two minutes (in seconds)
+#define MDNS_RESPONSE_TTL_10 (10*60)	// ten minutes (in seconds)
 
 #define MDNS_MAX_SERVICES_PER_PACKET (6)
 
@@ -319,7 +320,7 @@ MDNSError_t EthernetBonjour3Class<UdpClass>::_sendMDNSMessage(uint32_t peerAddre
 		buf[3] = 0x01; // class IN
 
 		// ttl
-		*((uint32_t *)&buf[4]) = __htonl(MDNS_RESPONSE_TTL);
+		*((uint32_t *)&buf[4]) = __htonl(MDNS_RESPONSE_TTL_10);
 
 		// data length
 		*((uint16_t *)&buf[8]) = __htons(8 + strlen((char *)this->_bonjourName));
@@ -346,7 +347,7 @@ MDNSError_t EthernetBonjour3Class<UdpClass>::_sendMDNSMessage(uint32_t peerAddre
 		buf[3] = 0x01; // class IN
 
 		// ttl
-		*((uint32_t *)&buf[4]) = __htonl(MDNS_RESPONSE_TTL);
+		*((uint32_t *)&buf[4]) = __htonl(MDNS_RESPONSE_TTL_10);
 
 		_socket.write((uint8_t *)buf, 8);
 		ptr += 8;
@@ -394,8 +395,7 @@ MDNSError_t EthernetBonjour3Class<UdpClass>::_sendMDNSMessage(uint32_t peerAddre
 		this->_writeServiceRecordName(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 1);
 
 		// PTR record (our service)
-		this->_writeServiceRecordPTR(serviceRecord, &ptr, buf, sizeof(DNSHeader_t),
-									 MDNS_RESPONSE_TTL);
+		this->_writeServiceRecordPTR(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), MDNS_RESPONSE_TTL_10);
 
 		// finally, our IP address as additional record
 		this->_writeMyIPAnswerRecord(&ptr, buf, sizeof(DNSHeader_t));
@@ -1181,7 +1181,7 @@ void EthernetBonjour3Class<UdpClass>::run()
 	}
 
 	// now, should we re-announce our services again?
-	unsigned long announceTimeOut = (((uint32_t)MDNS_RESPONSE_TTL / 2) + ((uint32_t)MDNS_RESPONSE_TTL / 4));
+	unsigned long announceTimeOut = 30;//(((uint32_t)MDNS_RESPONSE_TTL / 2) + ((uint32_t)MDNS_RESPONSE_TTL / 4));
 	if ((now - this->_lastAnnounceMillis) > 1000 * announceTimeOut)
 	{
 		for (i = 0; i < NumMDNSServiceRecords; i++)
@@ -1431,7 +1431,7 @@ void EthernetBonjour3Class<UdpClass>::_writeMyIPAnswerRecord(uint16_t *pPtr, uin
 	_socket.write((uint8_t *)buf, 4);
 	ptr += 4;
 
-	*((uint32_t *)buf) = __htonl(MDNS_RESPONSE_TTL);
+	*((uint32_t *)buf) = __htonl(MDNS_RESPONSE_TTL_10);
 	*((uint16_t *)&buf[4]) = __htons(4); // data length
 
 	uint8_t myIp[4];
